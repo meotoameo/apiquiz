@@ -18,6 +18,13 @@ const examSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["off", "on"],
+    },
+    timestart: {
+      type: Date,
+    },
     // Nhúng schema của câu hỏi vào trong schema của bài thi
     questions: [
       {

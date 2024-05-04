@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema(
         "minLength: 8, maxLength: 16,minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1!",
       ],
     },
+    Gender: {
+      type: String,
+      enum: ["0,1"], // 0 là nam, 1 là nữ
+    },
     passwordConfirm: {
       type: String,
       minlength: 8,
@@ -45,4 +49,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model("user", userSchema);
+const User = mongoose.model("User", userSchema);
+
+export default User;

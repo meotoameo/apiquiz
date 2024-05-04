@@ -1,6 +1,7 @@
-import UserAnswer from "../../model/submission.js";
-import Exam from "../../model/exam.js";
-import Question from "../../model/question.js";
+import UserAnswer from "../model/submission.js";
+import Exam from "../model/exam.js";
+import Question from "../model/question.js";
+import ExamSubmission from "../model/submission.js";
 const ExamController = {
   // CREATE
   createExam: async (req, res) => {
@@ -111,20 +112,22 @@ const ExamController = {
       const { userId, examId, answers } = req.body;
 
       // Tính điểm số cho bài thi dựa trên câu trả lời của người dùng
-      let score = 0;
+      let correctAnswers = 0;
       for (const answer of answers) {
         const question = await Question.findById(answer.questionId);
         if (question.correctAnswer === answer.selectedOption) {
-          score++; // Tăng điểm nếu câu trả lời đúng
+          correctAnswers++; // Tăng điểm nếu câu trả lời đúng
         }
       }
 
+      const totalQuestions = examQuestions.length;
+      const score = (correctAnswers / totalQuestions) * 10;
       // Lưu thông tin câu trả lời của người dùng và điểm số vào cơ sở dữ liệu
       const userAnswer = new UserAnswer({
         userId,
         examId,
         answers,
-        score,
+        score: parseFloat(score.toFixed(1)),
       });
       await userAnswer.save();
 
@@ -137,6 +140,56 @@ const ExamController = {
     } catch (error) {
       console.error("Error submitting exam:", error);
       res.status(500).json({ success: false, error: "Internal Server Error" });
+    }
+  },
+  getAllSubmission: async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+
+      // Lấy tất cả các bài nộp của người dùng từ cơ sở dữ liệu
+      const submissions = await ExamSubmission.find({ user: userId });
+
+      // Trả về danh sách các bài nộp của người dùng
+      res.status(200).json({ submissions });
+    } catch (error) {
+      console.error("Error fetching user submissions:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+  scoreDistributionExam: async (req, res, next) => {
+    try {
+      const { examId } = req.params;
+
+      // Lấy danh sách tất cả các bài nộp của sinh viên trong bài thi
+      const submissions = await ExamSubmission.find({ exam: examId });
+
+      // Khởi tạo đối tượng để lưu phổ điểm
+      const scoreDistribution = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+      };
+
+      // Đếm số lượng sinh viên đạt từng mức điểm
+      submissions.forEach((submission) => {
+        const score = Math.round(submission.score); // Làm tròn điểm
+        if (score >= 1 && score <= 10) {
+          scoreDistribution[score.toString()]++;
+        }
+      });
+
+      // Trả về kết quả phổ điểm
+      res.status(200).json({ scoreDistribution });
+    } catch (error) {
+      console.error("Error calculating score distribution:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
   },
 };

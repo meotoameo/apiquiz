@@ -3,7 +3,7 @@ import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import userRouter from "./src/routers/user.router.js";
-import examRouter from "./src/routers/exam.router.js";
+import adminRouter from "./src/routers/admin.router.js";
 const app = express();
 const DB = "mongodb://localhost:27017";
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -28,4 +28,4 @@ app.listen(port, () =>
   console.log(`Server running on port: http://localhost:${port}`)
 );
 app.use("/user", userRouter);
-app.use("/", examRouter);
+app.use("/admin", adminRouter);

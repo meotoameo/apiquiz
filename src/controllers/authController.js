@@ -1,7 +1,7 @@
-import user from "../../model/user.js";
-import { createToken } from "../../utils/jwt.js";
+import User from "../model/user.js";
+import { createToken } from "../utils/jwt.js";
 
-export const userController = {
+export const authController = {
   registerUser: async (req, res) => {
     try {
       // Extract username, email, password, and passwordConfirm from request body
@@ -24,7 +24,7 @@ export const userController = {
       }
 
       // Check if the username or email already exists in the database
-      const existingUser = await user.findOne({
+      const existingUser = await User.findOne({
         $or: [{ username }, { email }],
       });
       if (existingUser) {
@@ -34,7 +34,7 @@ export const userController = {
       }
 
       // Create a new user instance
-      const newUser = new user({ username, email, password });
+      const newUser = new User({ username, email, password });
 
       // Save the new user to the database
       await newUser.save();
