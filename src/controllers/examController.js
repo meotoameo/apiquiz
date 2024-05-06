@@ -123,13 +123,17 @@ const ExamController = {
         return res.status(400).json({ error: "Missing required fields" });
     }
       // Tính điểm số cho bài thi dựa trên câu trả lời của người dùng
+      const exam = await Exam.findById(examId);
       let correctAnswers = 0;
       for (const answer of answers) {
-        const question = await Question.findById(answer.questionId);
-        if (question.correctAnswer === answer.selectedOption) {
-          correctAnswers++; 
+        const question = exam.questions.find(q => q._id.toString() === answer.questionId); // Tìm câu hỏi trong bài thi
+        if (!question) {
+            return res.status(404).json({ error: `Question with ID ${answer.questionId} not found in exam` });
         }
-      }
+        if (question.correctAnswer === answer.selectedOption) {
+            correctAnswers++;
+        }
+    }
       const totalQuestions = answers.length;
       const score = (correctAnswers / totalQuestions) * 10;
       
@@ -158,7 +162,7 @@ const ExamController = {
       const { userId } = req.params;
 
       // Lấy tất cả các bài nộp của người dùng từ cơ sở dữ liệu
-      const submissions = await ExamSubmission.find({ user: userId });
+      const submissions = await ExamSubmission.find({ userId });
 
       // Trả về danh sách các bài nộp của người dùng
       res.status(200).json({ submissions });

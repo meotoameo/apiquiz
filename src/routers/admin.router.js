@@ -17,7 +17,7 @@ router.put("/updateUser/:id", userController.updateUserById); // Cập nhật th
 router.delete("/deleteUser/:id", userController.deleteUserById); // Xóa người dùng bằng ID
 router.get("/user", userController.searchUserByName); 
 
-router.get("/user/:id/submissions", ExamController.getSubmission);
+router.get("/user/:userId/submissions", ExamController.getSubmission);
 router.get("/submissions", ExamController.getAllSubmissions);
 
 export default router;

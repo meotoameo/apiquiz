@@ -11,5 +11,5 @@ router.get("/exam/:id", ExamController.getExamById); // view Exam
 
 
 router.post("/exam/submit", ExamController.submitExam);
-router.get("/exam/fillter",ExamController.fillterExam);
+router.get("/filterExam",ExamController.fillterExam);
 export default router;
