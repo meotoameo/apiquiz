@@ -1,35 +1,25 @@
-import UserAnswer from "../model/submission.js";
 import Exam from "../model/exam.js";
-import Question from "../model/question.js";
 import ExamSubmission from "../model/submission.js";
 const ExamController = {
   // CREATE
   createExam: async (req, res) => {
     try {
       const { examName, description, time, deadline, questions } = req.body;
-
+  
       // Tạo một đối tượng mới cho bài thi với các thông tin như examName, description, time, deadline
       const newExam = new Exam({ examName, description, time, deadline });
-
-      // Nếu có các câu hỏi được gửi kèm theo, tạo các đối tượng câu hỏi từ dữ liệu và thêm chúng vào đối tượng bài thi
+  
+      // Nếu có các câu hỏi được gửi kèm theo, thêm chúng vào đối tượng bài thi
       if (questions && questions.length > 0) {
-        const questionObjects = await Promise.all(
-          questions.map(async (questionData) => {
-            // Tạo một đối tượng mới cho câu hỏi từ dữ liệu được gửi
-            const question = new Question(questionData);
-            // Lưu câu hỏi mới vào cơ sở dữ liệu và trả về đối tượng câu hỏi đã lưu
-            return await question.save();
-          })
-        );
-        // Thêm các đối tượng câu hỏi vào mảng questions của đối tượng bài thi
-        newExam.questions = questionObjects;
+        newExam.questions = questions; // Thêm các câu hỏi vào mảng questions của đối tượng bài thi
       }
-
+  
       // Lưu bài thi mới vào cơ sở dữ liệu
       const savedExam = await newExam.save();
-
+  
       // Trả về kết quả
-      res.status(201).json(savedExam);
+      res.status(201).json({ message: "create success", exam: savedExam });
+
     } catch (error) {
       console.error("Error creating exam:", error);
       res.status(500).json({ error: "Internal Server Error" });
@@ -50,23 +40,42 @@ const ExamController = {
   // UPDATE
   updateExam: async (req, res) => {
     const { id } = req.params;
-    try {
-      const updatedExam = await Exam.findByIdAndUpdate(id, req.body, {
-        new: true,
-      });
-      res.json(updatedExam);
-    } catch (error) {
-      console.error("Error updating exam:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+  try {
+    const { examName, description, time, deadline, questions } = req.body;
+
+    // Tìm bài thi cần cập nhật trong cơ sở dữ liệu
+    const existingExam = await Exam.findById(id);
+
+    if (!existingExam) {
+      return res.status(404).json({ error: "Exam not found" });
     }
-  },
+
+    // Cập nhật thông tin bài thi nếu được cung cấp
+    if (examName) existingExam.examName = examName;
+    if (description) existingExam.description = description;
+    if (time) existingExam.time = time;
+    if (deadline) existingExam.deadline = deadline;
+    if (questions) existingExam.questions = questions;
+
+    // Lưu thông tin bài thi đã cập nhật vào cơ sở dữ liệu
+    const updatedExam = await existingExam.save();
+
+    // Trả về kết quả
+    res.json(updatedExam);
+  } catch (error) {
+    console.error("Error updating exam:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+},
+
+
 
   // DELETE
   deleteExam: async (req, res) => {
     const { id } = req.params;
     try {
       await Exam.findByIdAndDelete(id);
-      res.status(204).end();
+      res.status(204).json({ message: "Exam deleted successfully" });
     } catch (error) {
       console.error("Error deleting exam:", error);
       res.status(500).json({ error: "Internal Server Error" });
@@ -110,26 +119,28 @@ const ExamController = {
   submitExam: async (req, res) => {
     try {
       const { userId, examId, answers } = req.body;
-
+      if (!userId || !examId || !answers) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
       // Tính điểm số cho bài thi dựa trên câu trả lời của người dùng
       let correctAnswers = 0;
       for (const answer of answers) {
         const question = await Question.findById(answer.questionId);
         if (question.correctAnswer === answer.selectedOption) {
-          correctAnswers++; // Tăng điểm nếu câu trả lời đúng
+          correctAnswers++; 
         }
       }
-
-      const totalQuestions = examQuestions.length;
+      const totalQuestions = answers.length;
       const score = (correctAnswers / totalQuestions) * 10;
-      // Lưu thông tin câu trả lời của người dùng và điểm số vào cơ sở dữ liệu
-      const userAnswer = new UserAnswer({
+      
+      const newExamSubmission  = new ExamSubmission({
         userId,
         examId,
         answers,
         score: parseFloat(score.toFixed(1)),
       });
-      await userAnswer.save();
+      console.log(newExamSubmission);
+      await newExamSubmission.save();
 
       // Trả về phản hồi kèm theo thông tin điểm số
       res.status(200).json({
@@ -142,7 +153,7 @@ const ExamController = {
       res.status(500).json({ success: false, error: "Internal Server Error" });
     }
   },
-  getAllSubmission: async (req, res, next) => {
+  getSubmission: async (req, res, next) => {
     try {
       const { userId } = req.params;
 
@@ -156,6 +167,40 @@ const ExamController = {
       res.status(500).json({ error: "Internal Server Error" });
     }
   },
+  getAllSubmissions: async (req, res) => {
+    try {
+      const submissions = await ExamSubmission.find();
+      res.status(200).json(submissions);
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+  fillterExam: async(req,res) => {
+    try {
+      // Lấy trạng thái từ tham số truy vấn (query parameter)
+      const { status } = req.query;
+  
+      // Kiểm tra xem tham số trạng thái có tồn tại không
+      if (!status) {
+        return res.status(400).json({ error: "Missing status parameter" });
+      }
+  
+      // Kiểm tra xem giá trị của tham số trạng thái có hợp lệ không
+      if (status !== "on" && status !== "off") {
+        return res.status(400).json({ error: "Invalid status value" });
+      }
+  
+      // Sử dụng phương thức find với điều kiện là status
+      const exams = await Exam.find({ status });
+  
+      res.status(200).json(exams);
+    } catch (error) {
+      console.error("Error filtering exams by status:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+  ,
   scoreDistributionExam: async (req, res, next) => {
     try {
       const { examId } = req.params;

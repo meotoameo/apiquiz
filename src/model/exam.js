@@ -1,5 +1,20 @@
 import mongoose from "mongoose";
 
+const questionSchema = new mongoose.Schema({
+  questionName: {
+    type: String,
+    required: true,
+  },
+  options: {
+    type: Object,
+    required: true,
+  },
+  correctAnswer: {
+    type: String,
+    required: true,
+  },
+});
+
 const examSchema = new mongoose.Schema(
   {
     examName: {
@@ -21,17 +36,12 @@ const examSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["off", "on"],
+      default:"on"
     },
     timestart: {
       type: Date,
     },
-    // Nhúng schema của câu hỏi vào trong schema của bài thi
-    questions: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Question", // Thay 'Question' bằng tên model câu hỏi của bạn
-      },
-    ],
+    questions: [questionSchema], // Sử dụng schema của câu hỏi trong mảng
   },
   { timestamps: true }
 );

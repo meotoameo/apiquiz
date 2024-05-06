@@ -54,7 +54,7 @@ export const authController = {
   login: async (req, res) => {
     try {
       const { username, password } = req.body;
-      const getuser = await user.findOne({ username });
+      const getuser = await User.findOne({ username });
       if (!getuser || !password) {
         return res.status(400).json({
           success: false,
@@ -62,7 +62,7 @@ export const authController = {
         });
       }
 
-      const token = createToken(user);
+      const token = createToken(User);
 
       res.status(200).json({ success: true, token });
     } catch (err) {

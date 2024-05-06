@@ -3,6 +3,9 @@ import validator from "validator";
 
 const userSchema = new mongoose.Schema(
   {
+    fullname: {
+    type: String,
+    },
     username: {
       type: String,
       required: [true, "Please tell us your username!"],
@@ -27,10 +30,10 @@ const userSchema = new mongoose.Schema(
         "minLength: 8, maxLength: 16,minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1!",
       ],
     },
-    Gender: {
-      type: String,
-      enum: ["0,1"], // 0 là nam, 1 là nữ
-    },
+    // Gender: {
+    //   type: String,
+    //   enum: ["0,1"], // 0 là nam, 1 là nữ
+    // },
     passwordConfirm: {
       type: String,
       minlength: 8,

@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import userRouter from "./src/routers/user.router.js";
 import adminRouter from "./src/routers/admin.router.js";
 const app = express();
-const DB = "mongodb://localhost:27017";
+const DB = "mongodb+srv://trangmiumiutrang:DJlsWy4SX3gqVG94@cluster0.sgotfhp.mongodb.net/";
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 

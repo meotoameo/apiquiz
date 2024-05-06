@@ -3,32 +3,32 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const examSubmissionSchema = new Schema({
-  exam: {
+  examId: {
     type: Schema.Types.ObjectId,
-    ref: "Exam", // Thay 'Exam' bằng tên model của bài thi
+    ref: "Exam", 
     required: true,
   },
-  user: {
+  userId: {
     type: Schema.Types.ObjectId,
-    ref: "User", // Thay 'User' bằng tên model của người dùng
+    ref: "User", 
     required: true,
   },
   answers: [
     {
       question: {
         type: Schema.Types.ObjectId,
-        ref: "Question", // Thay 'Question' bằng tên model của câu hỏi
+        ref: "Question", 
       },
-      selectedOption: String, // Lựa chọn của người dùng cho câu hỏi
+      selectedOption: String, 
     },
   ],
   score: {
     type: Number,
-    default: 0, // Điểm số mặc định là 0
+    default: 0, 
   },
   submittedAt: {
     type: Date,
-    default: Date.now, // Thời điểm nộp bài mặc định là thời điểm hiện tại
+    default: Date.now, 
   },
 });
 
